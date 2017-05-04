@@ -1,0 +1,9 @@
+name = Instagram Block Module
+description = Display Instagram Photos in a Block
+core = 7.x
+version = 1.5
+
+configure = admin/config/content/block_instagrams
+
+files[] = block_instagrams.module
+stylesheets[all][] = css/block_instagrams.css

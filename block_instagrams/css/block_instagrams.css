@@ -1,0 +1,162 @@
+/* ============================ GRID ============================ */
+
+.gram-row.grid-grams {
+    width: 100%;
+}
+.single-gram.gram-grid {
+    width: 33.33%;
+    padding-top: 33.33%;
+    position: relative;
+}
+.single-gram.gram-grid .single-gram-img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    padding: 15px;
+    top: 0;
+}
+.single-gram.gram-tile .single-gram-img {
+    position: relative;
+}
+.single-gram.gram-grid img {
+    width: 100%;
+    height: 100%;
+}
+.gram-icon-overlay {
+    font-size: 24px;
+    color: white;
+    top: 2vw;
+    right: 2vw;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    opacity: .8;
+    position: absolute;
+    z-index: 1;
+    text-shadow: 1px 1px black;
+    text-align: right;
+}
+.single-gram.gram-tile .gram-icon-overlay {
+    right: calc(2vw - 15px);
+    top: calc(2vw - 15px);
+}
+@media screen and (max-width: 1200px) {
+    .single-gram.gram-grid .single-gram-img {
+        padding: 10px;
+    }
+    .single-gram.gram-tile .gram-icon-overlay {
+        right: 2vw;
+        top: 2vw;
+    }
+}
+@media screen and (max-width: 900px) {
+    .single-gram.gram-grid .single-gram-img {
+        padding: 2px;
+    }
+    .single-gram.gram-tile .gram-icon-overlay {
+        right: calc(2vw + 5px);
+        top: calc(2vw + 5px);
+    }
+}
+/* ============================ TILE ============================ */
+
+.single-gram-img img {
+    height: auto;
+    width: 100%;
+}
+.single-gram {
+    float: right;
+    text-decoration: none;
+}
+.tile-grams {
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+}
+.gram-tile a:hover,
+.gram-row a:active,
+.gram-tile:active,
+.gram-tile a:active,
+.gram-row a:visited,
+.gram-tile:visited,
+.gram-tile a:visited {
+    text-decoration: none;
+}
+.single-gram-txt {
+    width: 90%;
+    margin: 1em auto 0 auto;
+    text-decoration: none;
+    color: #444;
+}
+.gram-tile.gram-row {
+    margin: 0 auto;
+    text-decoration: none;
+}
+.gram-tile {
+    width: calc(33.3% - 20px);
+    height: 38em;
+    float: left;
+    border-top: 4px solid #125688;
+    margin: 12px 10px;
+    text-align: center;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+    padding: 10px 0px;
+    font-size: 1em;
+    background-color: white;
+    text-decoration: none !important;
+}
+.single-gram-dat {
+    font-size: .8em;
+    color: #aaa;
+    width: 25%);
+    display: inline-block;
+    text-align: right;
+    text-transform: uppercase;
+}
+.single-gram-ttl a:hover {
+    text-decoration: underline;
+}
+.single-gram-ttl {
+    text-align: left;
+    font-size: 1.2em;
+    padding-left: 1em;
+    display: inline-block;
+    padding-bottom: .5em;
+    color: #125688;
+    width: calc(75% - 1em)
+}
+@media(max-width:991px) {
+    .gram-tile {
+        height: 475px;
+    }
+}
+@media(max-width:992px) {
+    .gram-tile {
+        width: calc(50% - 20px);
+        height: 38em;
+        border-top: 4px solid #125688;
+        margin: 12px 10px;
+        text-align: center;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        padding: 10px 0px;
+        font-size: 1em;
+        background-color: white;
+        text-decoration: none;
+    }
+}
+@media(max-width:700px) {
+    .gram-tile {
+        width: 100%;
+        max-width: 350px;
+        height: 38em;
+        float: none;
+        border-top: 4px solid #125688;
+        margin: 12px auto;
+        text-align: center;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        padding: 10px 0px;
+        font-size: 1em;
+        background-color: white;
+        text-decoration: none;
+    }
+}

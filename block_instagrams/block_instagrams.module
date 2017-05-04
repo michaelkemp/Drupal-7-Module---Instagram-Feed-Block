@@ -1,0 +1,262 @@
+<?php
+
+
+/**
+ * Implements hook_block_info().
+ */
+function block_instagrams_block_info(){
+    $blocks = array();
+    
+    $SCREEN_NAME = variable_get('block_instagrams_SCREEN_NAME', '');
+    $SCREEN_NAME = strtolower(trim(preg_replace('/\s+/', '', $SCREEN_NAME),','));
+    $sNames = explode(",",$SCREEN_NAME);
+    $cnt = 0;
+    foreach($sNames as $sname) {    
+        $sname = strtolower(trim($sname));
+        if ($sname != "") {
+            ++$cnt;
+            $name = substr("igGrid_${cnt}_${sname}",0,30);
+            $blocks[$name] = array(
+                'info' => t("Instagram Block Grid ${cnt} ${sname}"),
+                'cache' => DRUPAL_CACHE_PER_PAGE,
+            );
+            $name = substr("igTile_${cnt}_${sname}",0,30);
+            $blocks[$name] = array(
+                'info' => t("Instagram Block Tile ${cnt} ${sname}"),
+                'cache' => DRUPAL_CACHE_PER_PAGE,
+            );
+            
+        }
+    }
+    
+    return $blocks;
+}
+
+/**
+ *  Implements hook_block_view().
+ */
+function block_instagrams_block_view($block_name = ""){
+    $block = array();
+    
+    $SCREEN_NAME = variable_get('block_instagrams_SCREEN_NAME', '');
+    $SCREEN_NAME = strtolower(trim(preg_replace('/\s+/', '', $SCREEN_NAME),','));
+    $sNames = explode(",",$SCREEN_NAME);
+    $cnt = 0;
+    foreach($sNames as $sname) {    
+        $sname = strtolower(trim($sname));
+        if ($sname != "") {
+            ++$cnt;
+            $name = substr("igGrid_${cnt}_${sname}",0,30);
+            if ($block_name == $name) {
+                $block['subject'] = t("Instagram Block Grid ${cnt} ${sname}");
+                $block['content'] = biInstagramBlock($sname,false);
+                return $block;
+            }
+            $name = substr("igTile_${cnt}_${sname}",0,30);
+            if ($block_name == $name) {
+                $block['subject'] = t("Instagram Block Tile ${cnt} ${sname}");
+                $block['content'] = biInstagramBlock($sname,true);
+                return $block;
+            }
+        }
+    }
+
+}
+
+/**
+ * Implements hook_menu().
+ */
+function block_instagrams_menu() {
+  $items = array();
+  
+  $items['admin/config/content/block_instagrams'] = array(
+    'title' => 'Block Instagrams Config',
+    'description' => 'Configuration for Block Instagrams module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('block_instagrams_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+  return $items;
+}
+
+function biInstagramBlock($dispScreenName,$showText) {
+    
+    $now = time();
+    $biInstagramTS = variable_get("biInstagramTS", 0);
+    $biInstagramJSON = variable_get("biInstagramJSON", "{}");
+    $WAIT_TIME = intval(variable_get('block_instagrams_WAIT_TIME', '60'));
+    $biInstagramUpdated = intval(variable_get("biInstagramUpdated", 1));
+    
+    if ((($now - $biInstagramTS) > $WAIT_TIME) || ($biInstagramUpdated == 1)) {
+
+            $biInstagramJSON = "{}";
+            variable_set("biInstagramTS", 0);
+            variable_set("biInstagramJSON", "{}");
+            variable_set("biInstagramUpdated", 0);
+    
+            $SCREEN_NAME = variable_get('block_instagrams_SCREEN_NAME', '');
+            $SCREEN_NAME = strtolower(trim(preg_replace('/\s+/', '', $SCREEN_NAME),','));
+            $sNames = explode(",",$SCREEN_NAME);
+            $photoArray = array();
+            foreach($sNames as $sname) {
+                $sname = strtolower(trim($sname));
+                if ($sname != "") {
+                    $allPics = @json_decode(file_get_contents("https://www.instagram.com/${sname}/media/"),TRUE);
+                    if (json_last_error() == JSON_ERROR_NONE) {
+                        $cnt = 0;
+                        $items = isset($allPics["items"]) ? $allPics["items"] : array();
+                        foreach($items as $anItem) {
+                            $photoArray[$sname][] = $anItem;
+                            $cnt++;
+                            if ($cnt >= 9) break;
+                        }
+                    }
+                }
+            }
+            
+            $biInstagramJSON = json_encode($photoArray);
+            variable_set("biInstagramTS", $now);
+            variable_set("biInstagramJSON", $biInstagramJSON);
+    }
+   
+    $instagrams = json_decode($biInstagramJSON,TRUE);
+    $namedGrams = isset($instagrams[$dispScreenName]) ? $instagrams[$dispScreenName] : array();
+    
+    $html = "";
+    $dispArray = array();
+    for($i=0;$i<9;++$i) {
+        $dispArray[$i]["fullName"] = "";
+        $dispArray[$i]["userName"] = "";
+        $dispArray[$i]["imageURL"] = "";
+        $dispArray[$i]["madeTime"] = "";
+        $dispArray[$i]["captText"] = "";
+        $dispArray[$i]["gramType"] = "";
+        $dispArray[$i]["gramLink"] = "";
+        $dispArray[$i]["imagDesc"] = "";
+    }
+    $i=0;
+    foreach($namedGrams as $gram) {
+        $dispArray[$i]["fullName"] = isset($gram["user"]["full_name"]) ? $gram["user"]["full_name"] : "";
+        $dispArray[$i]["userName"] = isset($gram["user"]["username"]) ? $gram["user"]["username"] : "";
+        $dispArray[$i]["imageURL"] = isset($gram["images"]["standard_resolution"]["url"]) ? $gram["images"]["standard_resolution"]["url"] : ""; 
+        $dispArray[$i]["madeTime"] = isset($gram["created_time"]) ? date('M j, Y', intval($gram["created_time"])) : date('M j, Y'); 
+        $dispArray[$i]["captText"] = isset($gram["caption"]["text"]) ? biCropText($gram["caption"]["text"],200) : ""; 
+        $dispArray[$i]["gramType"] = isset($gram["type"]) ? trim($gram["type"]) : "";          
+        $dispArray[$i]["gramLink"] = isset($gram["link"]) ? $gram["link"] : "";
+        $dispArray[$i]["imagDesc"] = "Instagram " .$dispArray[$i]["gramType"]. " - " . $dispArray[$i]["fullName"];
+        switch($dispArray[$i]["gramType"]) {
+            case "carousel" : $dispArray[$i]["imagIcon"] = '<i class="fa fa-clone" aria-hidden="true"></i>'; break;
+            case "video"    : $dispArray[$i]["imagIcon"] = '<i class="fa fa-video-camera" aria-hidden="true"></i>'; break;
+            case "image"    : $dispArray[$i]["imagIcon"] = '<i class="fa fa-instagram" aria-hidden="true"></i>'; break;
+            default         : $dispArray[$i]["imagIcon"] = '<i class="fa fa-instagram" aria-hidden="true"></i>'; break; 
+        }
+        ++$i;
+    }
+
+    // ================================ TILE ================================
+    if ($showText) {
+        $GRAM_COUNT = intval(variable_get('block_instagrams_GRAM_COUNT', '3'));
+        for($i=0;$i<$GRAM_COUNT;$i+=3) {
+            for($j=0;$j<3;++$j) {
+                $index = $i+$j;
+                $html.= "<div class='single-gram gram-tile'>";
+                $html.= "    <div class='single-gram-ttl'>";
+                $html.= "       <i class='fa fa-instagram' aria-hidden='true'></i>";
+                $html.= "       <a href='".$dispArray[$index]["gramLink"]. "' target='_blank' aria-label='" .$dispArray[$index]["imagDesc"]. "'>" .$dispArray[$index]["userName"]. "</a>";
+                $html.= "    </div>";
+                $html.= "    <div class='single-gram-dat'>".$dispArray[$index]["madeTime"]. "</div>";
+                $html.= "    <a href='".$dispArray[$index]["gramLink"]. "' target='_blank' aria-label='".$dispArray[$index]["imagDesc"]. "'>";
+                $html.= "        <div class='single-gram-img'><img src='".$dispArray[$index]["imageURL"]. "' alt='".$dispArray[$index]["imagDesc"]. "'><div class='gram-icon-overlay'>".$dispArray[$index]["imagIcon"]. "</div></div>";
+                $html.= "    </a>";
+                $html.= "    <div class='single-gram-txt'>".$dispArray[$index]["captText"]."</div>";
+                $html.= "</div>";
+            }
+        }
+    // ================================ GRID ================================    
+    } else {
+        for($i=0;$i<9;$i+=3) {
+            $html.= "<div class='gram-row grid-grams'>";
+            for($j=0;$j<3;++$j) {
+                $index = $i+$j;
+                $html.= "<div class='single-gram gram-grid'>";
+                $html.= "    <a href='" .$dispArray[$index]["gramLink"]. "' target='_blank' aria-label='".$dispArray[$index]["imagDesc"]. "'>";
+                $html.= "        <div class='single-gram-img'><img src='" .$dispArray[$index]["imageURL"]. "' alt='" .$dispArray[$index]["imagDesc"]. "'><div class='gram-icon-overlay'>" .$dispArray[$index]["imagIcon"]. "</div></div>";
+                $html.= "    </a>";
+                $html.= "</div>";
+            }
+            $html.= "</div>";
+        }
+    }
+    
+    $output = array (
+		'#type' => 'markup',
+		'#prefix' => "<div class='block-instagram-module'>",
+		'#markup' => "<div class='block-instagram-container clearfix'>" . $html . "</div>",
+		'#suffix' => "</div>",
+		);
+	return $output; 
+
+}
+
+
+function block_instagrams_form($form, &$form_state) {
+  
+  $form['block_instagrams_GRAM_COUNT'] = array(
+    '#type' => 'select', 
+    '#title' => t('Number of Tile Instagrams'),
+    '#default_value' => variable_get('block_instagrams_GRAM_COUNT', '3'),
+    '#options' => array(
+        '3' => t('3'),
+        '6' => t('6'),
+        '9' => t('9'),
+    ),    
+    '#description' => t('Total Number of Tweets to display from each Account Screen Name.'),
+    '#required' => TRUE,
+  );
+
+  $form['block_instagrams_SCREEN_NAME'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Account Screen Name'),
+    '#default_value' => variable_get('block_instagrams_SCREEN_NAME', ''),
+    '#description' => t('The Screen Name(s) of the Public Instagram feed(s) to be displayed - comma separated (eg natgeo,clarklittle).'),
+    '#required' => TRUE,
+  );
+  
+  $form['block_instagrams_WAIT_TIME'] = array(
+    '#type' => 'select', 
+    '#title' => t('Check Frequency'),
+    '#default_value' => variable_get('block_instagrams_WAIT_TIME', '60'),
+    '#options' => array(
+        '60' => t('One Minute'),
+        '300' => t('Five Minutes'),
+        '600' => t('Ten Minutes'),
+        '3600' => t('One Hour'),
+    ),    
+    '#description' => t('I should check for new tweets every: '),
+    '#required' => TRUE,
+  );    
+
+  $form['#submit'][] = 'block_instagrams_form_submit';
+  return system_settings_form($form);
+}
+
+function block_instagrams_form_submit($form, &$form_state) {
+    cache_clear_all();
+    variable_set("biInstagramUpdated", 1);
+} 
+ 
+function biCropText($str,$chars) {
+    $words = preg_split('/([\s\n\r]+)/u', $str, null, PREG_SPLIT_DELIM_CAPTURE);
+    $count = count($words);
+    $len=0;
+    for($i=0;$i<$count;++$i) {
+        $len += strlen($words[$i]);
+        if ($len > $chars) { break; }
+    }
+    $out = implode(array_slice($words, 0, $i));
+    if (strlen($out) < strlen($str)) { $out = trim($out) . "..."; }
+    
+    return $out;
+}
