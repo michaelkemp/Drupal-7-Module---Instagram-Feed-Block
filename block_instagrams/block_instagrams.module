@@ -157,6 +157,7 @@ function biInstagramBlock($dispScreenName,$showText) {
 
     // ================================ TILE ================================
     if ($showText) {
+        $class = "block-instagram-tile";
         $GRAM_COUNT = intval(variable_get('block_instagrams_GRAM_COUNT', '3'));
         for($i=0;$i<$GRAM_COUNT;$i+=3) {
             for($j=0;$j<3;++$j) {
@@ -176,6 +177,7 @@ function biInstagramBlock($dispScreenName,$showText) {
         }
     // ================================ GRID ================================    
     } else {
+        $class = "block-instagram-grid";
         for($i=0;$i<9;$i+=3) {
             $html.= "<div class='gram-row grid-grams'>";
             for($j=0;$j<3;++$j) {
@@ -193,7 +195,7 @@ function biInstagramBlock($dispScreenName,$showText) {
     $output = array (
 		'#type' => 'markup',
 		'#prefix' => "<div class='block-instagram-module'>",
-		'#markup' => "<div class='block-instagram-container clearfix'>" . $html . "</div>",
+		'#markup' => "<div class='block-instagram-container ${class} clearfix'>" . $html . "</div>",
 		'#suffix' => "</div>",
 		);
 	return $output; 
