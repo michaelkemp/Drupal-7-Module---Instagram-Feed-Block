@@ -214,9 +214,9 @@ $js=<<<JS
     }); }(jQuery));  
 JS;
 
-    //if ($showText) {
+    if ($showText) {
         drupal_add_js($js, 'inline');
-    //}
+    }
 
     $output = array (
 		'#type' => 'markup',
