@@ -1,5 +1,4 @@
 /* ============================ GRID ============================ */
-
 .block-instagram-grid {
     max-width: 800px;
     margin-left: auto;
@@ -74,12 +73,17 @@
 }
 /* ============================ TILE ============================ */
 
+.block-instagram-tile {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
 .single-gram-img img {
     height: auto;
     width: 100%;
 }
 .single-gram {
-    float: right;
+    float: left;
     text-decoration: none;
 }
 .tile-grams {
@@ -118,6 +122,7 @@
     font-size: 1em;
     background-color: white;
     text-decoration: none !important;
+    overflow: hidden;
 }
 .single-gram-dat {
     font-size: .8em;

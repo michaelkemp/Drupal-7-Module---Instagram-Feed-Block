@@ -1,7 +1,7 @@
 name = Instagram Block Module
 description = Display Instagram Photos in a Block
 core = 7.x
-version = 1.6
+version = 1.71
 
 configure = admin/config/content/block_instagrams
 

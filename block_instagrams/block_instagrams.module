@@ -157,11 +157,13 @@ function biInstagramBlock($dispScreenName,$showText) {
 
     // ================================ TILE ================================
     if ($showText) {
+        $maxTxtLen = 0;
         $class = "block-instagram-tile";
         $GRAM_COUNT = intval(variable_get('block_instagrams_GRAM_COUNT', '3'));
         for($i=0;$i<$GRAM_COUNT;$i+=3) {
             for($j=0;$j<3;++$j) {
                 $index = $i+$j;
+                $maxTxtLen = (strlen($dispArray[$index]["captText"]) > $maxTxtLen) ? strlen($dispArray[$index]["captText"]) : $maxTxtLen;
                 $html.= "<div class='single-gram gram-tile'>";
                 $html.= "    <div class='single-gram-ttl'>";
                 $html.= "       <i class='fa fa-instagram' aria-hidden='true'></i>";
@@ -191,7 +193,31 @@ function biInstagramBlock($dispScreenName,$showText) {
             $html.= "</div>";
         }
     }
-    
+$js=<<<JS
+    (function ($) { jQuery(document).ready(function($) {
+
+        function sizeTiles() {
+            var maxStr = ${maxTxtLen};
+            var addPx = Math.ceil(maxStr/30) * 20;
+            var wide = $(".gram-tile").width();
+            var high = wide + 70 + addPx;
+            $(".gram-tile").css({"height":high+"px"});
+            console.log("${maxTxtLen}", addPx);
+        }
+
+        $(window).resize(function(){
+            sizeTiles();
+        });
+        
+        sizeTiles();
+
+    }); }(jQuery));  
+JS;
+
+    //if ($showText) {
+        drupal_add_js($js, 'inline');
+    //}
+
     $output = array (
 		'#type' => 'markup',
 		'#prefix' => "<div class='block-instagram-module'>",
